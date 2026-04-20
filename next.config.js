@@ -1,5 +1,7 @@
 const nextConfig = {
-  reactStrictMode: true
+  experimental: {
+    serverComponentsExternalPackages: ["firebase"]
+  }
 };
 
 module.exports = nextConfig;
