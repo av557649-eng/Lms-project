@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { db } from "@/lib/firebase";
+import { db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
