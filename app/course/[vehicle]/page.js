@@ -34,7 +34,7 @@ export default function CoursePage() {
            router.push(
   `/lesson/${encodeURIComponent(vehicle)}/${encodeURIComponent(module.id)}`
 )
-  )
+  
 }
           style={{ padding: 10, border: "1px solid black", margin: 10 }}
         >
