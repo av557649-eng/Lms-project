@@ -8,6 +8,7 @@ import { collection, getDocs } from "firebase/firestore";
 export default function LessonPage() {
   const { vehicle, module } = useParams();
   const courseId = decodeURIComponent(vehicle);
+  const moduleId = decodeURIComponent(module);
   const router = useRouter();
   const [lessons, setLessons] = useState([]);
 
