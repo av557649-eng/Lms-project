@@ -40,7 +40,7 @@ export default function LessonView() {
       <h2>{data.title}</h2>
 
       <video width="600" controls>
-        <source src={data.videoUrl} />
+        <source src={data["Video URL"]} />
       </video>
 
       <p>{data.description}</p>
