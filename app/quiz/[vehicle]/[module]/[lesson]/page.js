@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { db } from "../../../../../lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
@@ -16,20 +16,15 @@ export default function QuizPage() {
           db,
           "Courses",
           vehicle,
-          "modules",
+          "Modules",
           module,
-          "lessons",
+          "Lesson",
           lesson,
           "quiz"
         )
       );
 
-      setQuestions(
-        snap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-      );
+      setQuestions(snap.docs.map(d => d.data()));
     };
 
     if (vehicle && module && lesson) load();
@@ -39,21 +34,11 @@ export default function QuizPage() {
     <div style={{ padding: 40 }}>
       <h2>Quiz</h2>
 
-      {questions.length === 0 && <p>No quiz found</p>}
-
-      {questions.map(q => (
-        <div
-          key={q.id}
-          style={{
-            padding: 15,
-            margin: 10,
-            border: "1px solid black"
-          }}
-        >
+      {questions.map((q, i) => (
+        <div key={i} style={{ margin: 10, padding: 10, border: "1px solid black" }}>
           <h4>{q.question}</h4>
-
-          {q.options?.map((opt, i) => (
-            <p key={i}>• {opt}</p>
+          {q.options?.map((o, j) => (
+            <p key={j}>• {o}</p>
           ))}
         </div>
       ))}
