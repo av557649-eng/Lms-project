@@ -9,10 +9,11 @@ export default function LessonPage() {
   const { vehicle, module } = useParams();
   const router = useRouter();
   const [lessons, setLessons] = useState([]);
-   if (!vehicle || !module) return <div>Loading...</div>;
-  
-  const courseId = decodeURIComponent(vehicle);
-  const moduleId = decodeURIComponent(module);
+
+  const courseId = decodeURIComponent(vehicle || "");
+  const moduleId = decodeURIComponent(module || "");
+
+  if (!courseId || !moduleId) return <div>Loading...</div>;
 
   useEffect(() => {
     const load = async () => {
@@ -23,22 +24,27 @@ export default function LessonPage() {
       setLessons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     };
 
-    if (vehicle && module) load();
-  }, [vehicle, module]);
+    load();
+  }, [courseId, moduleId]);
 
   return (
     <div style={{ padding: 40 }}>
       <h2>{moduleId}</h2>
 
-      {lessons.map(l => (
+      {lessons.map((l) => (
         <div
           key={l.id}
           onClick={() =>
             router.push(
               `/quiz/${encodeURIComponent(vehicle)}/${encodeURIComponent(module)}/${encodeURIComponent(l.id)}`
-)
+            )
           }
-          style={{ padding: 10, border: "1px solid gray", margin: 10, cursor: "pointer" }}
+          style={{
+            padding: 10,
+            border: "1px solid gray",
+            margin: 10,
+            cursor: "pointer"
+          }}
         >
           {l.title}
         </div>
