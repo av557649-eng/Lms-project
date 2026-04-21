@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { db } from "../../../lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function CoursePage() {
@@ -13,15 +13,10 @@ export default function CoursePage() {
   useEffect(() => {
     const load = async () => {
       const snap = await getDocs(
-        collection(db, "Courses", vehicle, "modules")
+        collection(db, "Courses", vehicle, "Modules")
       );
 
-      setModules(
-        snap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-      );
+      setModules(snap.docs.map(d => ({ id: d.id })));
     };
 
     if (vehicle) load();
@@ -31,22 +26,13 @@ export default function CoursePage() {
     <div style={{ padding: 40 }}>
       <h2>{vehicle}</h2>
 
-      {modules.length === 0 && <p>No modules found</p>}
-
-      {modules.map(mod => (
+      {modules.map(m => (
         <div
-          key={mod.id}
-          onClick={() =>
-            router.push(`/lesson/${vehicle}/${mod.id}`)
-          }
-          style={{
-            padding: 15,
-            margin: 10,
-            border: "1px solid black",
-            cursor: "pointer"
-          }}
+          key={m.id}
+          onClick={() => router.push(`/lesson/${vehicle}/${m.id}`)}
+          style={{ padding: 10, border: "1px solid black", margin: 10 }}
         >
-          {mod.title || mod.id}
+          {m.id}
         </div>
       ))}
     </div>
