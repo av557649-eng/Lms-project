@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "../../lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
@@ -12,15 +12,8 @@ export default function Dashboard() {
   useEffect(() => {
     const load = async () => {
       const snap = await getDocs(collection(db, "Courses"));
-
-      setCourses(
-        snap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-      );
+      setCourses(snap.docs.map(d => ({ id: d.id })));
     };
-
     load();
   }, []);
 
@@ -28,20 +21,13 @@ export default function Dashboard() {
     <div style={{ padding: 40 }}>
       <h2>Courses</h2>
 
-      {courses.length === 0 && <p>No courses found</p>}
-
-      {courses.map(course => (
+      {courses.map(c => (
         <div
-          key={course.id}
-          onClick={() => router.push(`/course/${course.id}`)}
-          style={{
-            padding: 15,
-            margin: 10,
-            border: "1px solid #ccc",
-            cursor: "pointer"
-          }}
+          key={c.id}
+          onClick={() => router.push(`/course/${c.id}`)}
+          style={{ padding: 10, border: "1px solid black", margin: 10 }}
         >
-          {course.title || course.id}
+          {c.id}
         </div>
       ))}
     </div>
