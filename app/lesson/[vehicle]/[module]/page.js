@@ -72,7 +72,7 @@ const moduleId = decodeURIComponent(module || "");
           <div
             key={l.id}
             onClick={() =>
-              router.push(`/quiz/${courseId}/${moduleId}/${l.id}`)
+              router.push(`/lesson-view/${courseId}/${moduleId}/${l.id}`)
             }
             style={{
               padding: 10,
