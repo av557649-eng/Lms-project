@@ -8,7 +8,6 @@ import { collection, getDocs } from "firebase/firestore";
 export default function QuizPage() {
   const params = useParams();
 
-  // ✅ FIX: always decode properly
   const vehicle = decodeURIComponent(params.vehicle || "");
   const module = decodeURIComponent(params.module || "");
   const lesson = decodeURIComponent(params.lesson || "");
@@ -19,12 +18,9 @@ export default function QuizPage() {
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        console.log("=== QUIZ DEBUG ===");
-        console.log("Vehicle:", vehicle);
-        console.log("Module:", module);
-        console.log("Lesson:", lesson);
+        console.log("PATH CHECK:");
+        console.log(vehicle, module, lesson);
 
-        // ✅ IMPORTANT: Firestore path
         const quizRef = collection(
           db,
           "Courses",
@@ -33,17 +29,12 @@ export default function QuizPage() {
           module,
           "Lesson",
           lesson,
-          "quiz"
+          "Quiz"   // ✅ FIXED: MUST BE "Quiz" (capital Q)
         );
 
         const snap = await getDocs(quizRef);
 
-        console.log("Quiz docs found:", snap.size);
-
-        snap.docs.forEach((doc) => {
-          console.log("Quiz Doc ID:", doc.id);
-          console.log("Quiz Data:", doc.data());
-        });
+        console.log("Quiz count:", snap.size);
 
         const data = snap.docs.map((doc) => ({
           id: doc.id,
@@ -52,20 +43,16 @@ export default function QuizPage() {
 
         setQuestions(data);
       } catch (err) {
-        console.log("❌ Quiz Load Error:", err);
+        console.log("ERROR:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (vehicle && module && lesson) {
-      loadQuiz();
-    }
+    if (vehicle && module && lesson) loadQuiz();
   }, [vehicle, module, lesson]);
 
-  if (loading) {
-    return <div style={{ padding: 40 }}>Loading quiz...</div>;
-  }
+  if (loading) return <div>Loading quiz...</div>;
 
   return (
     <div style={{ padding: 40 }}>
@@ -73,8 +60,7 @@ export default function QuizPage() {
 
       {questions.length === 0 ? (
         <div style={{ color: "red" }}>
-          ❌ No quiz found<br />
-          👉 Check Firestore path + lesson document ID exactly
+          ❌ No quiz found — check Firestore "Quiz" collection name (case sensitive)
         </div>
       ) : (
         questions.map((q) => (
@@ -83,7 +69,7 @@ export default function QuizPage() {
             style={{
               padding: 10,
               border: "1px solid black",
-              marginBottom: 10,
+              margin: 10,
             }}
           >
             <h4>{q.question}</h4>
