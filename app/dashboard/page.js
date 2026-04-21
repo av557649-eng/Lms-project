@@ -24,7 +24,7 @@ export default function Dashboard() {
       {courses.map((c) => (
         <div
           key={c.id}
-          onClick={() => router.push(`/course/${c.id}`)}
+          onClick={() => router.push(`/course/${encodeURIComponent(c.id)}`)}
           style={{
             padding: 10,
             border: "1px solid black",
