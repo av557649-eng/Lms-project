@@ -39,9 +39,13 @@ export default function LessonView() {
     <div style={{ padding: 40 }}>
       <h2>{data.title}</h2>
 
-      <video width="600" controls>
-        <source src={data["Video URL"]} />
-      </video>
+      {data["Video URL"] ? (
+  <video width="700" controls>
+    <source src={data["Video URL"]} type="video/mp4" />
+  </video>
+) : (
+  <p style={{ color: "red" }}>❌ No video URL found</p>
+)}
 
       <p>{data.description}</p>
 
