@@ -12,8 +12,9 @@ export default function LessonPage() {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const courseId = vehicle;
-  const moduleId = module;
+  // ✅ FIX: remove encoding issues safely
+  const courseId = decodeURIComponent(vehicle || "");
+  const moduleId = decodeURIComponent(module || "");
 
   useEffect(() => {
     const load = async () => {
@@ -21,17 +22,16 @@ export default function LessonPage() {
         console.log("COURSE:", courseId);
         console.log("MODULE:", moduleId);
 
-        const path = [
-          "Courses",
-          courseId,
-          "Modules",
-          moduleId,
-          "Lesson"
-        ];
-
-        console.log("PATH:", path.join(" / "));
-
-        const snap = await getDocs(collection(db, ...path));
+        const snap = await getDocs(
+          collection(
+            db,
+            "Courses",
+            courseId,
+            "Modules",
+            moduleId,
+            "Lesson" // ⚠️ MUST MATCH FIRESTORE EXACTLY
+          )
+        );
 
         console.log("DOC COUNT:", snap.size);
 
@@ -39,9 +39,14 @@ export default function LessonPage() {
           console.log("DOC:", doc.id);
         });
 
-        setLessons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLessons(
+          snap.docs.map(d => ({
+            id: d.id,
+            ...d.data()
+          }))
+        );
       } catch (err) {
-        console.log("ERROR:", err);
+        console.log("FIRESTORE ERROR:", err);
       } finally {
         setLoading(false);
       }
@@ -58,14 +63,16 @@ export default function LessonPage() {
 
       {lessons.length === 0 ? (
         <div style={{ color: "red" }}>
-          ❌ No lessons found
+          ❌ No lessons found in Firestore
+          <br />
+          👉 Check collection name: "Lesson"
         </div>
       ) : (
         lessons.map(l => (
           <div
             key={l.id}
             onClick={() =>
-              router.push(`/quiz/${vehicle}/${module}/${l.id}`)
+              router.push(`/quiz/${courseId}/${moduleId}/${l.id}`)
             }
             style={{
               padding: 10,
