@@ -13,20 +13,26 @@ export default function LessonView() {
 
   useEffect(() => {
     const load = async () => {
-      const ref = doc(
-        db,
-        "Courses",
-        vehicle,
-        "Modules",
-        module,
-        "Lesson",
-        lesson
-      );
+      try {
+        const ref = doc(
+          db,
+          "Courses",
+          vehicle,
+          "Modules",
+          module,
+          "Lesson",
+          lesson
+        );
 
-      const snap = await getDoc(ref);
+        const snap = await getDoc(ref);
 
-      if (snap.exists()) {
-        setData(snap.data());
+        if (snap.exists()) {
+          setData(snap.data());
+        } else {
+          console.log("No document found");
+        }
+      } catch (err) {
+        console.log("Error:", err);
       }
     };
 
@@ -39,13 +45,14 @@ export default function LessonView() {
     <div style={{ padding: 40 }}>
       <h2>{data.title}</h2>
 
+      {/* VIDEO FIX */}
       {data["Video URL"] ? (
-  <video width="700" controls>
-    <source src={data["Video URL"]} type="video/mp4" />
-  </video>
-) : (
-  <p style={{ color: "red" }}>❌ No video URL found</p>
-)}
+        <video width="600" controls>
+          <source src={data["Video URL"]} type="video/mp4" />
+        </video>
+      ) : (
+        <p style={{ color: "red" }}>❌ Video URL missing in Firestore</p>
+      )}
 
       <p>{data.description}</p>
 
