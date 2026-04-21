@@ -13,8 +13,8 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true);
 
   // ✅ FIX: remove encoding issues safely
- const courseId = vehicle;
- const moduleId = module;
+const courseId = decodeURIComponent(vehicle || "");
+const moduleId = decodeURIComponent(module || "");
   
   useEffect(() => {
     const load = async () => {
