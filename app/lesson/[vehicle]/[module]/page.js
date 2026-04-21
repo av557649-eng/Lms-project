@@ -36,7 +36,7 @@ export default function LessonPage() {
           onClick={() =>
             router.push(
               `/quiz/${encodeURIComponent(vehicle)}/${encodeURIComponent(module)}/${encodeURIComponent(l.id)}`
-            )
+)
           }
           style={{ padding: 10, border: "1px solid gray", margin: 10, cursor: "pointer" }}
         >
