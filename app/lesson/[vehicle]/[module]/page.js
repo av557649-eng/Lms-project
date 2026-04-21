@@ -7,13 +7,14 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function LessonPage() {
   const { vehicle, module } = useParams();
+  const courseId = decodeURIComponent(vehicle);
   const router = useRouter();
   const [lessons, setLessons] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       const snap = await getDocs(
-        collection(db, "Courses", vehicle, "Modules", module, "Lesson")
+        collection(db, "Courses", courseId, "Modules", module, "Lesson")
       );
 
       setLessons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
