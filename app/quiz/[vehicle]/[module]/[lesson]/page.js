@@ -6,48 +6,35 @@ import { db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
-  const params = useParams();
-
-  const courseId = decodeURIComponent(params.vehicle || "");
-  const moduleId = decodeURIComponent(params.module || "");
-  const lessonId = decodeURIComponent(params.lesson || "");
-
+  const { vehicle, module, lesson } = useParams();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState({}); // track selected answers
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
+  const courseId = decodeURIComponent(vehicle || "");
+  const moduleId = decodeURIComponent(module || "");
+  const lessonId = decodeURIComponent(lesson || "");
 
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        console.log("PATH:");
-        console.log(courseId, moduleId, lessonId);
-
-        // ✅ IMPORTANT FIX: "Quiz" (capital Q)
-        const quizRef = collection(
-          db,
-          "Courses",
-          courseId,
-          "Modules",
-          moduleId,
-          "Lesson",
-          lessonId,
-          "Quiz"
+        const snap = await getDocs(
+          collection(
+            db,
+            "Courses",
+            courseId,
+            "Modules",
+            moduleId,
+            "Lesson",
+            lessonId,
+            "quiz"
+          )
         );
 
-        const snap = await getDocs(quizRef);
-
-        console.log("Quiz count:", snap.size);
-
-        const data = snap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setQuestions(data);
       } catch (err) {
-        console.log("ERROR:", err);
+        console.log("Error loading quiz:", err);
       } finally {
         setLoading(false);
       }
@@ -57,83 +44,49 @@ export default function QuizPage() {
   }, [courseId, moduleId, lessonId]);
 
   if (loading) return <div>Loading quiz...</div>;
+  if (!questions.length) return <div style={{ color: "red" }}>❌ No quiz found</div>;
 
-  if (questions.length === 0) {
-    return (
-      <div style={{ padding: 40, color: "red" }}>
-        ❌ No quiz found — CHECK "Quiz" collection name in Firestore (CASE SENSITIVE)
-      </div>
-    );
-  }
-
-  const currentQuestion = questions[currentIndex];
-
-  const handleOptionClick = (opt) => {
-    setSelectedOption(opt);
-  };
-
-  const nextQuestion = () => {
-    setSelectedOption(null);
-    setCurrentIndex(prev =>
-      prev + 1 < questions.length ? prev + 1 : prev
-    );
+  const handleSelect = (qId, option) => {
+    setSelected(prev => ({ ...prev, [qId]: option }));
   };
 
   return (
     <div style={{ padding: 40 }}>
       <h2>Quiz for {lessonId}</h2>
 
-      {/* QUESTION */}
-      <h3 style={{ marginBottom: 20 }}>
-        {currentIndex + 1}. {currentQuestion.question}
-      </h3>
+      {questions.map((q, i) => (
+        <div key={q.id} style={{ margin: "20px 0" }}>
+          <h4>{i + 1}. {q.question}</h4>
 
-      {/* OPTIONS */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {currentQuestion.options?.map((opt, i) => {
-          let bg = "white";
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {q.options.map((opt, idx) => {
+              const sel = selected[q.id];
+              let bg = "white";
 
-          if (selectedOption) {
-            if (opt === currentQuestion.answer) {
-              bg = "#c8f7c5"; // green correct
-            } else if (opt === selectedOption) {
-              bg = "#f8c8c8"; // red wrong
-            }
-          }
+              if (sel) {
+                if (sel === q.answer && sel === opt) bg = "#d4edda"; // green
+                else if (sel === opt && sel !== q.answer) bg = "#f8d7da"; // red
+                else bg = "white";
+              }
 
-          return (
-            <div
-              key={i}
-              onClick={() => !selectedOption && handleOptionClick(opt)}
-              style={{
-                padding: 12,
-                border: "1px solid black",
-                cursor: selectedOption ? "default" : "pointer",
-                backgroundColor: bg
-              }}
-            >
-              {opt}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* NEXT BUTTON */}
-      {selectedOption && currentIndex + 1 < questions.length && (
-        <button
-          onClick={nextQuestion}
-          style={{ marginTop: 20, padding: "10px 15px" }}
-        >
-          Next Question
-        </button>
-      )}
-
-      {/* FINISH */}
-      {selectedOption && currentIndex + 1 === questions.length && (
-        <div style={{ marginTop: 20, color: "blue", fontWeight: "bold" }}>
-          🎉 Quiz Completed!
+              return (
+                <button
+                  key={idx}
+                  onClick={() => !selected[q.id] && handleSelect(q.id, opt)}
+                  style={{
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    cursor: sel ? "default" : "pointer",
+                    backgroundColor: bg
+                  }}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }
