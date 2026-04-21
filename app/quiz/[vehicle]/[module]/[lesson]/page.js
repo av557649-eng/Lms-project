@@ -8,39 +8,31 @@ import { collection, getDocs } from "firebase/firestore";
 export default function QuizPage() {
   const params = useParams();
 
-  // ✅ IMPORTANT FIX: decode Firestore IDs properly
   const vehicle = decodeURIComponent(params.vehicle || "");
   const module = decodeURIComponent(params.module || "");
   const lesson = decodeURIComponent(params.lesson || "");
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState({});
+  const [selected, setSelected] = useState({}); // store selected option index per question
 
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        console.log("DECODED PATH:");
-        console.log(vehicle, module, lesson);
-
-        // ⚡ FIX HERE: Use "quiz" lowercase to match your Firestore
         const quizRef = collection(
           db,
           "Courses",
-          vehicle,   // Tipper Trailer
+          vehicle,
           "Modules",
-          module,    // Material Processing
+          module,
           "Lesson",
-          lesson,    // e.g., CNC Laser Cutting
-          "Quiz"     // ✅ lowercase 'quiz' matches Firestore
+          lesson,
+          "Quiz"
         );
 
         const snap = await getDocs(quizRef);
 
-        console.log("DOC COUNT:", snap.size);
-
         if (snap.empty) {
-          console.log("❌ STILL EMPTY - check Firestore structure");
           setQuestions([]);
           setLoading(false);
           return;
@@ -53,7 +45,7 @@ export default function QuizPage() {
 
         setQuestions(data);
       } catch (err) {
-        console.log("ERROR:", err);
+        console.log("Error loading quiz:", err);
       } finally {
         setLoading(false);
       }
@@ -62,10 +54,10 @@ export default function QuizPage() {
     if (vehicle && module && lesson) loadQuiz();
   }, [vehicle, module, lesson]);
 
-  const handleSelect = (qId, opt, answer) => {
+  const handleSelect = (qId, idx) => {
     setSelected(prev => ({
       ...prev,
-      [qId]: opt
+      [qId]: idx
     }));
   };
 
@@ -74,10 +66,11 @@ export default function QuizPage() {
   if (questions.length === 0) {
     return (
       <div style={{ padding: 40, color: "red" }}>
-        ❌ No quiz found<br /><br />
+        ❌ No quiz found
+        <br />
         Check Firestore structure:
         <br />
-        Courses → {vehicle} → {module} → {lesson} → quiz
+        Courses → {vehicle} → {module} → {lesson} → Quiz
       </div>
     );
   }
@@ -87,28 +80,29 @@ export default function QuizPage() {
       <h2>Quiz for {lesson}</h2>
 
       {questions.map(q => {
-        const opts = Array.isArray(q.options) ? q.options : [];
+        const opts = q.Options || [];
+        const correctIndex = parseInt(q.Answer, 10); // convert string index to number
+        const selectedIndex = selected[q.id];
 
         return (
           <div key={q.id} style={{ border: "1px solid black", margin: 20, padding: 20 }}>
-            <h3>{q.question}</h3>
+            <h3>{q.Question || "❌ Missing question field"}</h3>
 
             {opts.map((opt, i) => {
-              const selectedOpt = selected[q.id];
-              const isCorrect = q.answer === opt;
-
               let bg = "white";
 
-              if (selectedOpt) {
-                bg = selectedOpt === opt
-                  ? (isCorrect ? "lightgreen" : "lightcoral")
-                  : "white";
+              if (selectedIndex !== undefined) {
+                if (i === selectedIndex) {
+                  bg = i === correctIndex ? "lightgreen" : "lightcoral";
+                } else if (i === correctIndex) {
+                  bg = "lightgreen";
+                }
               }
 
               return (
                 <div
                   key={i}
-                  onClick={() => handleSelect(q.id, opt, q.answer)}
+                  onClick={() => handleSelect(q.id, i)}
                   style={{
                     padding: 10,
                     margin: 5,
