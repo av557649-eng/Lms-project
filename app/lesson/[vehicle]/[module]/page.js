@@ -7,10 +7,11 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function LessonPage() {
   const { vehicle, module } = useParams();
-  const courseId = decodeURIComponent(vehicle);
-  const moduleId = decodeURIComponent(module);
   const router = useRouter();
   const [lessons, setLessons] = useState([]);
+
+  const courseId = decodeURIComponent(vehicle);
+  const moduleId = decodeURIComponent(module);
 
   useEffect(() => {
     const load = async () => {
@@ -26,15 +27,17 @@ export default function LessonPage() {
 
   return (
     <div style={{ padding: 40 }}>
-      <h2>{module}</h2>
+      <h2>{moduleId}</h2>
 
       {lessons.map(l => (
         <div
           key={l.id}
           onClick={() =>
-            router.push(`/quiz/${vehicle}/${module}/${l.id}`)
+            router.push(
+              `/quiz/${encodeURIComponent(vehicle)}/${encodeURIComponent(module)}/${encodeURIComponent(l.id)}`
+            )
           }
-          style={{ padding: 10, border: "1px solid gray", margin: 10 }}
+          style={{ padding: 10, border: "1px solid gray", margin: 10, cursor: "pointer" }}
         >
           {l.title}
         </div>
