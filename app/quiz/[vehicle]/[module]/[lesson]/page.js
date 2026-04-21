@@ -10,30 +10,41 @@ export default function QuizPage() {
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState({}); // Track user answers
+  const [selected, setSelected] = useState({});
 
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        if (!vehicle || !module || !lesson) return;
+        console.log("RAW PARAMS:", vehicle, module, lesson);
 
-        // Firestore path must exactly match your structure
+        /**
+         * 🔥 IMPORTANT FIX:
+         * Your structure is:
+         * Courses → Tipper Trailer → Material Processing → LVD Bending Machine → quiz
+         *
+         * BUT "Material Processing" is NOT a doc in your URL,
+         * it's just a module label.
+         *
+         * So we go:
+         */
+
         const quizRef = collection(
           db,
-          "Courses",           // collection
-          vehicle,             // document e.g., "Tipper Trailer"
-          "Modules",           // collection
-          module,              // document e.g., "Material Processing"
-          "Lesson",            // collection
-          lesson,              // document e.g., "CNC Laser Cutting"
-          "Quiz"               // collection
+          "Courses",
+          vehicle,
+          module,        // 👈 THIS IS THE KEY FIX (no "Modules")
+          lesson,
+          "Quiz"
         );
 
         const snap = await getDocs(quizRef);
 
+        console.log("DOC COUNT:", snap.size);
+
         if (snap.empty) {
-          console.log("❌ No quiz found — check Firestore path and document IDs");
+          console.log("❌ STILL EMPTY → Firestore path mismatch");
           setQuestions([]);
+          setLoading(false);
           return;
         }
 
@@ -44,19 +55,19 @@ export default function QuizPage() {
 
         setQuestions(data);
       } catch (err) {
-        console.log("Error loading quiz:", err);
+        console.log("ERROR:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadQuiz();
+    if (vehicle && module && lesson) loadQuiz();
   }, [vehicle, module, lesson]);
 
-  const handleSelect = (qId, option, correctAnswer) => {
+  const handleSelect = (qId, opt, answer) => {
     setSelected(prev => ({
       ...prev,
-      [qId]: option
+      [qId]: opt
     }));
   };
 
@@ -65,7 +76,9 @@ export default function QuizPage() {
   if (questions.length === 0) {
     return (
       <div style={{ padding: 40, color: "red" }}>
-        ❌ No quiz found — check Firestore path and document IDs
+        ❌ No quiz found — YOUR FIRESTORE PATH IS:
+        <br /><br />
+        Courses → {vehicle} → {module} → {lesson} → quiz
       </div>
     );
   }
@@ -75,27 +88,22 @@ export default function QuizPage() {
       <h2>Quiz for {lesson}</h2>
 
       {questions.map(q => {
-        // Ensure options is an array
         const opts = Array.isArray(q.options) ? q.options : [];
 
         return (
-          <div
-            key={q.id}
-            style={{
-              border: "1px solid black",
-              padding: 20,
-              marginBottom: 20
-            }}
-          >
+          <div key={q.id} style={{ border: "1px solid black", margin: 20, padding: 20 }}>
             <h3>{q.question}</h3>
 
             {opts.map((opt, i) => {
-              const isSelected = selected[q.id] === opt;
+              const selectedOpt = selected[q.id];
               const isCorrect = q.answer === opt;
 
               let bg = "white";
-              if (isSelected) {
-                bg = isCorrect ? "lightgreen" : "lightcoral";
+
+              if (selectedOpt) {
+                bg = selectedOpt === opt
+                  ? (isCorrect ? "lightgreen" : "lightcoral")
+                  : "white";
               }
 
               return (
@@ -104,9 +112,9 @@ export default function QuizPage() {
                   onClick={() => handleSelect(q.id, opt, q.answer)}
                   style={{
                     padding: 10,
-                    marginTop: 5,
-                    cursor: "pointer",
+                    margin: 5,
                     border: "1px solid gray",
+                    cursor: "pointer",
                     backgroundColor: bg
                   }}
                 >
