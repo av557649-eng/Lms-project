@@ -6,14 +6,21 @@ import { db } from "../../../../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function LessonView() {
-  const { vehicle, module, lesson } = useParams();
+  const params = useParams();
   const router = useRouter();
+
+  // SAFE PARAM HANDLING
+  const vehicle = params.vehicle ? decodeURIComponent(params.vehicle) : "";
+  const module = params.module ? decodeURIComponent(params.module) : "";
+  const lesson = params.lesson ? decodeURIComponent(params.lesson) : "";
 
   const [data, setData] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       try {
+        console.log("FINAL PATH:", vehicle, module, lesson);
+
         const ref = doc(
           db,
           "Courses",
@@ -27,26 +34,33 @@ export default function LessonView() {
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
+          console.log("DATA FOUND:", snap.data());
           setData(snap.data());
         } else {
-          console.log("No document found");
+          console.log("❌ No document found in Firestore");
+          setData(false);
         }
       } catch (err) {
         console.log("Error:", err);
+        setData(false);
       }
     };
 
     if (vehicle && module && lesson) load();
   }, [vehicle, module, lesson]);
 
-  if (!data) return <div>Loading video...</div>;
+  // LOADING STATE
+  if (data === null) return <div>Loading video...</div>;
+
+  // NOT FOUND STATE
+  if (data === false) return <div>Lesson not found</div>;
 
   return (
     <div style={{ padding: 40 }}>
       <h2>{data.title}</h2>
 
-      {/* VIDEO FIX */}
-      {data["Video URL"] ? (
+      {/* VIDEO FIX (IMPORTANT) */}
+      {data?.["Video URL"] ? (
         <video width="600" controls>
           <source src={data["Video URL"]} type="video/mp4" />
         </video>
