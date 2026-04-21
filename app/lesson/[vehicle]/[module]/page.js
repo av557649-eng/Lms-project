@@ -15,7 +15,7 @@ export default function LessonPage() {
   useEffect(() => {
     const load = async () => {
       const snap = await getDocs(
-        collection(db, "Courses", courseId, "Modules", module, "Lesson")
+        collection(db, "Courses", courseId, "Modules", moduleId, "Lesson")
       );
 
       setLessons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
