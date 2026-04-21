@@ -10,15 +10,20 @@ export default function CoursePage() {
   const router = useRouter();
   const [modules, setModules] = useState([]);
 
-  const courseId = decodeURIComponent(vehicle || "");
+  // ❌ DO NOT decode or encode
+  const courseId = vehicle;
 
   useEffect(() => {
     const load = async () => {
-      const snap = await getDocs(
-        collection(db, "Courses", courseId, "Modules")
-      );
+      try {
+        const snap = await getDocs(
+          collection(db, "Courses", courseId, "Modules")
+        );
 
-      setModules(snap.docs.map(d => ({ id: d.id })));
+        setModules(snap.docs.map(d => ({ id: d.id })));
+      } catch (err) {
+        console.log("Error loading modules:", err);
+      }
     };
 
     if (courseId) load();
@@ -32,9 +37,7 @@ export default function CoursePage() {
         <div
           key={m.id}
           onClick={() =>
-            router.push(
-              `/lesson/${encodeURIComponent(vehicle)}/${encodeURIComponent(m.id)}`
-            )
+            router.push(`/lesson/${vehicle}/${m.id}`)
           }
           style={{
             padding: 10,
