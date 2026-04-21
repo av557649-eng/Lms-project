@@ -14,18 +14,18 @@ export default function QuizPage() {
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        console.log("PATH:", vehicle, module, lesson);
+        // Use the Firestore names exactly as-is
+        console.log("Fetching quiz for path:", vehicle, module, lesson);
 
-        // Directly use the lesson name as-is
         const quizRef = collection(
           db,
           "Courses",
-          vehicle,       // Tipper Trailer
+          vehicle,       // Course document ID (e.g., "Tipper Trailer")
           "Modules",
-          module,        // Material Processing
+          module,        // Module document ID (e.g., "Material Processing")
           "Lesson",
-          lesson,        // LVD Bending Machine (must match document ID exactly)
-          "quiz"         // Collection under the lesson document
+          lesson,        // Lesson document ID (e.g., "LVD Bending Machine")
+          "quiz"         // Quiz collection under the lesson
         );
 
         const snap = await getDocs(quizRef);
@@ -33,7 +33,7 @@ export default function QuizPage() {
         console.log("Quiz documents found:", snap.size);
 
         if (snap.size === 0) {
-          console.log("No quiz found — path mismatch");
+          console.warn("❌ No quiz found — make sure document IDs match Firestore exactly");
         }
 
         const data = snap.docs.map(doc => ({
@@ -43,7 +43,7 @@ export default function QuizPage() {
 
         setQuestions(data);
       } catch (err) {
-        console.log("Error loading quiz:", err);
+        console.error("Error loading quiz:", err);
       } finally {
         setLoading(false);
       }
@@ -59,7 +59,9 @@ export default function QuizPage() {
       <h2>Quiz for {lesson}</h2>
 
       {questions.length === 0 ? (
-        <div style={{ color: "red" }}>❌ No quiz found — check Firestore path and document IDs</div>
+        <div style={{ color: "red" }}>
+          ❌ No quiz found — check Firestore path and document IDs
+        </div>
       ) : (
         questions.map(q => (
           <div key={q.id} style={{ padding: 10, border: "1px solid black", margin: 10 }}>
