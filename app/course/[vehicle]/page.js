@@ -7,36 +7,41 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function CoursePage() {
   const { vehicle } = useParams();
-  const courseId = decodeURIComponent(vehicle); 
   const router = useRouter();
   const [modules, setModules] = useState([]);
+
+  const courseId = decodeURIComponent(vehicle || "");
 
   useEffect(() => {
     const load = async () => {
       const snap = await getDocs(
-        collection(db, "Courses", courseId , "Modules")
+        collection(db, "Courses", courseId, "Modules")
       );
 
       setModules(snap.docs.map(d => ({ id: d.id })));
     };
 
-    if (vehicle) load();
-  }, [vehicle]);
+    if (courseId) load();
+  }, [courseId]);
 
   return (
     <div style={{ padding: 40 }}>
-      <h2>{vehicle}</h2>
+      <h2>{courseId}</h2>
 
-      {modules.map(m => (
+      {modules.map((m) => (
         <div
           key={m.id}
           onClick={() =>
-           router.push(
-  `/lesson/${encodeURIComponent(vehicle)}/${encodeURIComponent(module.id)}`
-)
-  
-}
-          style={{ padding: 10, border: "1px solid black", margin: 10 }}
+            router.push(
+              `/lesson/${encodeURIComponent(vehicle)}/${encodeURIComponent(m.id)}`
+            )
+          }
+          style={{
+            padding: 10,
+            border: "1px solid black",
+            margin: 10,
+            cursor: "pointer"
+          }}
         >
           {m.id}
         </div>
