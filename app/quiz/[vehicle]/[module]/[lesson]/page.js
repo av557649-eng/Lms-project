@@ -61,6 +61,22 @@ export default function QuizPage() {
     }));
   };
 
+  // ✅ ADDED ONLY THIS
+  const calculateScore = () => {
+    let correct = 0;
+
+    questions.forEach(q => {
+      const correctIndex = parseInt(q.Answer, 10);
+      const selectedIndex = selected[q.id];
+
+      if (selectedIndex === correctIndex) {
+        correct++;
+      }
+    });
+
+    return correct;
+  };
+
   if (loading) return <div style={{ padding: 40 }}>Loading quiz...</div>;
 
   if (questions.length === 0) {
@@ -81,7 +97,7 @@ export default function QuizPage() {
 
       {questions.map(q => {
         const opts = q.Options || [];
-        const correctIndex = parseInt(q.Answer, 10); // convert string index to number
+        const correctIndex = parseInt(q.Answer, 10);
         const selectedIndex = selected[q.id];
 
         return (
@@ -118,6 +134,11 @@ export default function QuizPage() {
           </div>
         );
       })}
+
+      {/* ✅ ADDED SCORE DISPLAY ONLY */}
+      <div style={{ marginTop: 30, fontSize: 22, fontWeight: "bold" }}>
+        🎯 Score: {calculateScore()} / {questions.length} correct
+      </div>
     </div>
   );
 }
