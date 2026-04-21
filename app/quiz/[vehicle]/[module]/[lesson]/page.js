@@ -27,7 +27,7 @@ export default function QuizPage() {
             moduleId,
             "Lesson",
             lessonId,
-            "quiz"
+            "Quiz"
           )
         );
 
