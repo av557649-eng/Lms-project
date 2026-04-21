@@ -6,22 +6,12 @@ import { db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
-  const params = useParams();
-
-  // Decode URL params safely
-  const vehicle = params.vehicle ? decodeURIComponent(params.vehicle) : "";
-  const module = params.module ? decodeURIComponent(params.module) : "";
-  const lesson = params.lesson ? decodeURIComponent(params.lesson) : "";
-
+  const { vehicle, module, lesson } = useParams();
   const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        setLoading(true);
-        console.log("QUIZ PATH:", vehicle, module, lesson);
-
         const snap = await getDocs(
           collection(
             db,
@@ -35,45 +25,47 @@ export default function QuizPage() {
           )
         );
 
-        console.log("Questions found:", snap.size);
-        snap.docs.forEach(doc => console.log("Question doc:", doc.id));
+        console.log("QUIZ DOC COUNT:", snap.size);
 
-        setQuestions(snap.docs.map(d => d.data()));
+        const data = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        console.log("QUIZ DATA:", data);
+
+        setQuestions(data);
       } catch (err) {
-        console.error("Error loading quiz:", err);
-      } finally {
-        setLoading(false);
+        console.log("QUIZ ERROR:", err);
       }
     };
 
     if (vehicle && module && lesson) load();
   }, [vehicle, module, lesson]);
 
-  if (loading) return <div>Loading quiz...</div>;
-
-  if (questions.length === 0)
-    return <div style={{ color: "red" }}>❌ No questions found for this lesson</div>;
-
   return (
     <div style={{ padding: 40 }}>
-      <h2>Quiz - {lesson}</h2>
+      <h2>Quiz</h2>
 
-      {questions.map((q, i) => (
-        <div
-          key={i}
-          style={{
-            margin: 10,
-            padding: 10,
-            border: "1px solid black",
-            borderRadius: 4
-          }}
-        >
-          <h4>{q.question}</h4>
-          {q.options?.map((o, j) => (
-            <p key={j}>• {o}</p>
-          ))}
-        </div>
-      ))}
+      {questions.length === 0 ? (
+        <p style={{ color: "red" }}>❌ No quiz questions found</p>
+      ) : (
+        questions.map((q, i) => (
+          <div
+            key={q.id}
+            style={{ margin: 10, padding: 10, border: "1px solid black" }}
+          >
+            {/* TRY BOTH POSSIBLE FIELD NAMES */}
+            <h4>{q.question || q.Question}</h4>
+
+            {(q.options || q.Options)?.map((o, j) => (
+              <p key={j}>• {o}</p>
+            ))}
+
+            <small>Answer: {q.answer || q.Answer}</small>
+          </div>
+        ))
+      )}
     </div>
   );
 }
