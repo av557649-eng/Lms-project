@@ -8,9 +8,9 @@ import { collection, getDocs } from "firebase/firestore";
 export default function QuizPage() {
   const params = useParams();
 
-  const vehicle = decodeURIComponent(params.vehicle || "");
-  const module = decodeURIComponent(params.module || "");
-  const lesson = decodeURIComponent(params.lesson || "");
+  const vehicle = params.vehicle;
+  const module = params.module;
+  const lesson = params.lesson;
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,12 +18,10 @@ export default function QuizPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        console.log("=== DEBUG START ===");
-        console.log("Vehicle:", vehicle);
-        console.log("Module:", module);
-        console.log("Lesson:", lesson);
+        console.log("PATH CHECK:", vehicle, module, lesson);
 
-        const path = [
+        const ref = collection(
+          db,
           "Courses",
           vehicle,
           "Modules",
@@ -31,28 +29,20 @@ export default function QuizPage() {
           "Lesson",
           lesson,
           "quiz"
-        ];
+        );
 
-        console.log("FULL PATH:", path.join(" / "));
-
-        const ref = collection(db, ...path);
         const snap = await getDocs(ref);
 
         console.log("DOC COUNT:", snap.size);
 
-        snap.docs.forEach((doc) => {
-          console.log("DOC ID:", doc.id);
-          console.log("DOC DATA:", doc.data());
-        });
-
-        const data = snap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
+        const data = snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
         }));
 
         setQuestions(data);
       } catch (err) {
-        console.log("QUIZ ERROR:", err);
+        console.log("ERROR:", err);
       } finally {
         setLoading(false);
       }
@@ -67,35 +57,20 @@ export default function QuizPage() {
     <div style={{ padding: 40 }}>
       <h2>Quiz</h2>
 
-      <p style={{ color: "gray" }}>
-        Course: {vehicle} <br />
-        Module: {module} <br />
-        Lesson: {lesson}
-      </p>
-
       {questions.length === 0 ? (
         <div style={{ color: "red" }}>
-          ❌ No quiz questions found (check console logs)
+          ❌ No quiz found — Firestore path mismatch
         </div>
       ) : (
-        questions.map((q, i) => (
-          <div
-            key={q.id}
-            style={{
-              margin: 10,
-              padding: 10,
-              border: "1px solid black"
-            }}
-          >
+        questions.map((q) => (
+          <div key={q.id} style={{ padding: 10, border: "1px solid black", margin: 10 }}>
             <h4>{q.question || q.Question}</h4>
 
-            {(q.options || q.Options)?.map((o, j) => (
-              <p key={j}>• {o}</p>
+            {(q.options || q.Options)?.map((o, i) => (
+              <p key={i}>• {o}</p>
             ))}
 
-            <p>
-              <b>Answer:</b> {q.answer || q.Answer}
-            </p>
+            <b>Answer:</b> {q.answer || q.Answer}
           </div>
         ))
       )}
