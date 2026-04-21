@@ -29,7 +29,7 @@ export default function QuizPage() {
           vehicle,   // ✅ FIXED
           module,    // ✅ FIXED
           lesson,    // ✅ FIXED
-          "quiz"
+          "Quiz"
         );
 
         const snap = await getDocs(quizRef);
