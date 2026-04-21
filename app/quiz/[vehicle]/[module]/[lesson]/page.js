@@ -7,86 +7,111 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
   const { vehicle, module, lesson } = useParams();
+
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState({}); // track selected answers
-
-  const courseId = decodeURIComponent(vehicle || "");
-  const moduleId = decodeURIComponent(module || "");
-  const lessonId = decodeURIComponent(lesson || "");
+  const [selected, setSelected] = useState({}); // track answers
 
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        const snap = await getDocs(
-          collection(
-            db,
-            "Courses",
-            courseId,
-            "Modules",
-            moduleId,
-            "Lesson",
-            lessonId,
-            "Quiz"
-          )
+        const ref = collection(
+          db,
+          "Courses",
+          vehicle,
+          "Modules",
+          module,
+          "Lesson",
+          lesson,
+          "Quiz"
         );
 
-        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const snap = await getDocs(ref);
+
+        const data = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
         setQuestions(data);
       } catch (err) {
-        console.log("Error loading quiz:", err);
+        console.log("Quiz error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (courseId && moduleId && lessonId) loadQuiz();
-  }, [courseId, moduleId, lessonId]);
+    if (vehicle && module && lesson) loadQuiz();
+  }, [vehicle, module, lesson]);
+
+  function handleSelect(qId, option, correctAnswer) {
+    setSelected(prev => ({
+      ...prev,
+      [qId]: option
+    }));
+  }
 
   if (loading) return <div>Loading quiz...</div>;
-  if (!questions.length) return <div style={{ color: "red" }}>❌ No quiz found</div>;
 
-  const handleSelect = (qId, option) => {
-    setSelected(prev => ({ ...prev, [qId]: option }));
-  };
+  if (questions.length === 0) {
+    return (
+      <div style={{ padding: 40, color: "red" }}>
+        ❌ No quiz found — check Firestore structure
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 40 }}>
-      <h2>Quiz for {lessonId}</h2>
+      <h2>Quiz for {lesson}</h2>
 
-      {questions.map((q, i) => (
-        <div key={q.id} style={{ margin: "20px 0" }}>
-          <h4>{i + 1}. {q.question}</h4>
+      {questions.map((q) => {
+        const options = Array.isArray(q.options)
+          ? q.options
+          : typeof q.options === "string"
+          ? q.options.split(",")
+          : [];
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {q.options.map((opt, idx) => {
-              const sel = selected[q.id];
+        return (
+          <div
+            key={q.id}
+            style={{
+              border: "1px solid black",
+              margin: 20,
+              padding: 20
+            }}
+          >
+            <h3>{q.question}</h3>
+
+            {options.map((opt, i) => {
+              const isSelected = selected[q.id] === opt;
+              const isCorrect = q.answer === opt;
+
               let bg = "white";
 
-              if (sel) {
-                if (sel === q.answer && sel === opt) bg = "#d4edda"; // green
-                else if (sel === opt && sel !== q.answer) bg = "#f8d7da"; // red
-                else bg = "white";
+              if (isSelected) {
+                bg = isCorrect ? "lightgreen" : "lightcoral";
               }
 
               return (
-                <button
-                  key={idx}
-                  onClick={() => !selected[q.id] && handleSelect(q.id, opt)}
+                <div
+                  key={i}
+                  onClick={() => handleSelect(q.id, opt, q.answer)}
                   style={{
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    cursor: sel ? "default" : "pointer",
+                    padding: 10,
+                    margin: 5,
+                    border: "1px solid gray",
+                    cursor: "pointer",
                     backgroundColor: bg
                   }}
                 >
                   {opt}
-                </button>
+                </div>
               );
             })}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
