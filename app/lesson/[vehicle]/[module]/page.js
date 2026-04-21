@@ -9,46 +9,68 @@ export default function LessonPage() {
   const { vehicle, module } = useParams();
   const router = useRouter();
   const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const courseId = decodeURIComponent(vehicle || "");
   const moduleId = decodeURIComponent(module || "");
 
-  if (!courseId || !moduleId) return <div>Loading...</div>;
-
   useEffect(() => {
     const load = async () => {
-      const snap = await getDocs(
-        collection(db, "Courses", courseId, "Modules", moduleId, "Lesson")
-      );
+      try {
+        setLoading(true);
 
-      setLessons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        console.log("Course:", courseId);
+        console.log("Module:", moduleId);
+
+        const snap = await getDocs(
+          collection(db, "Courses", courseId, "Modules", moduleId, "Lesson")
+        );
+
+        console.log("Docs found:", snap.size);
+
+        setLessons(
+          snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        );
+      } catch (err) {
+        console.log("ERROR:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    load();
+    if (courseId && moduleId) load();
   }, [courseId, moduleId]);
+
+  if (loading) return <div>Loading lessons...</div>;
 
   return (
     <div style={{ padding: 40 }}>
       <h2>{moduleId}</h2>
 
-      {lessons.map((l) => (
-        <div
-          key={l.id}
-          onClick={() =>
-            router.push(
-              `/quiz/${encodeURIComponent(vehicle)}/${encodeURIComponent(module)}/${encodeURIComponent(l.id)}`
-            )
-          }
-          style={{
-            padding: 10,
-            border: "1px solid gray",
-            margin: 10,
-            cursor: "pointer"
-          }}
-        >
-          {l.title}
+      {lessons.length === 0 ? (
+        <div style={{ color: "red" }}>
+          No lessons found in Firestore
         </div>
-      ))}
+      ) : (
+        lessons.map(l => (
+          <div
+            key={l.id}
+            onClick={() =>
+              router.push(
+                `/quiz/${encodeURIComponent(vehicle)}/${encodeURIComponent(module)}/${encodeURIComponent(l.id)}`
+              )
+            }
+            style={{
+              padding: 10,
+              border: "1px solid black",
+              margin: 10,
+              cursor: "pointer"
+            }}
+          >
+            {l.title}
+          </div>
+        ))
+      )}
     </div>
   );
 }
