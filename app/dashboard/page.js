@@ -21,11 +21,16 @@ export default function Dashboard() {
     <div style={{ padding: 40 }}>
       <h2>Courses</h2>
 
-      {courses.map(c => (
+      {courses.map((c) => (
         <div
           key={c.id}
-          onClick={() => router.push(`/course/${c.id}`)
-          style={{ padding: 10, border: "1px solid black", margin: 10 }}
+          onClick={() => router.push(`/course/${c.id}`)}
+          style={{
+            padding: 10,
+            border: "1px solid black",
+            margin: 10,
+            cursor: "pointer"
+          }}
         >
           {c.id}
         </div>
