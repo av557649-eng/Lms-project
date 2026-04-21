@@ -23,13 +23,16 @@ export default function QuizPage() {
         console.log("DECODED PATH:");
         console.log(vehicle, module, lesson);
 
+        // ⚡ FIX HERE: Use "quiz" lowercase to match your Firestore
         const quizRef = collection(
           db,
           "Courses",
-          vehicle,   // ✅ FIXED
-          module,    // ✅ FIXED
-          lesson,    // ✅ FIXED
-          "Quiz"
+          vehicle,   // Tipper Trailer
+          "Modules",
+          module,    // Material Processing
+          "Lesson",
+          lesson,    // e.g., CNC Laser Cutting
+          "Quiz"     // ✅ lowercase 'quiz' matches Firestore
         );
 
         const snap = await getDocs(quizRef);
