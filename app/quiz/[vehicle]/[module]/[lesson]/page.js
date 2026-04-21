@@ -10,23 +10,32 @@ export default function QuizPage() {
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState({}); // track answers
+  const [selected, setSelected] = useState({}); // Track user answers
 
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        const ref = collection(
+        if (!vehicle || !module || !lesson) return;
+
+        // Firestore path must exactly match your structure
+        const quizRef = collection(
           db,
-          "Courses",
-          vehicle,
-          "Modules",
-          module,
-          "Lesson",
-          lesson,
-          "Quiz"
+          "Courses",           // collection
+          vehicle,             // document e.g., "Tipper Trailer"
+          "Modules",           // collection
+          module,              // document e.g., "Material Processing"
+          "Lesson",            // collection
+          lesson,              // document e.g., "CNC Laser Cutting"
+          "Quiz"               // collection
         );
 
-        const snap = await getDocs(ref);
+        const snap = await getDocs(quizRef);
+
+        if (snap.empty) {
+          console.log("❌ No quiz found — check Firestore path and document IDs");
+          setQuestions([]);
+          return;
+        }
 
         const data = snap.docs.map(doc => ({
           id: doc.id,
@@ -35,28 +44,28 @@ export default function QuizPage() {
 
         setQuestions(data);
       } catch (err) {
-        console.log("Quiz error:", err);
+        console.log("Error loading quiz:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (vehicle && module && lesson) loadQuiz();
+    loadQuiz();
   }, [vehicle, module, lesson]);
 
-  function handleSelect(qId, option, correctAnswer) {
+  const handleSelect = (qId, option, correctAnswer) => {
     setSelected(prev => ({
       ...prev,
       [qId]: option
     }));
-  }
+  };
 
-  if (loading) return <div>Loading quiz...</div>;
+  if (loading) return <div style={{ padding: 40 }}>Loading quiz...</div>;
 
   if (questions.length === 0) {
     return (
       <div style={{ padding: 40, color: "red" }}>
-        ❌ No quiz found — check Firestore structure
+        ❌ No quiz found — check Firestore path and document IDs
       </div>
     );
   }
@@ -65,30 +74,26 @@ export default function QuizPage() {
     <div style={{ padding: 40 }}>
       <h2>Quiz for {lesson}</h2>
 
-      {questions.map((q) => {
-        const options = Array.isArray(q.options)
-          ? q.options
-          : typeof q.options === "string"
-          ? q.options.split(",")
-          : [];
+      {questions.map(q => {
+        // Ensure options is an array
+        const opts = Array.isArray(q.options) ? q.options : [];
 
         return (
           <div
             key={q.id}
             style={{
               border: "1px solid black",
-              margin: 20,
-              padding: 20
+              padding: 20,
+              marginBottom: 20
             }}
           >
             <h3>{q.question}</h3>
 
-            {options.map((opt, i) => {
+            {opts.map((opt, i) => {
               const isSelected = selected[q.id] === opt;
               const isCorrect = q.answer === opt;
 
               let bg = "white";
-
               if (isSelected) {
                 bg = isCorrect ? "lightgreen" : "lightcoral";
               }
@@ -99,9 +104,9 @@ export default function QuizPage() {
                   onClick={() => handleSelect(q.id, opt, q.answer)}
                   style={{
                     padding: 10,
-                    margin: 5,
-                    border: "1px solid gray",
+                    marginTop: 5,
                     cursor: "pointer",
+                    border: "1px solid gray",
                     backgroundColor: bg
                   }}
                 >
