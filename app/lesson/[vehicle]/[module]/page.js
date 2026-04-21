@@ -65,9 +65,7 @@ export default function LessonPage() {
           <div
             key={l.id}
             onClick={() =>
-              router.push(
-                `/quiz/${encodeURIComponent(vehicle)}/${encodeURIComponent(module)}/${encodeURIComponent(l.id)}`
-              )
+              router.push(`/quiz/${vehicle}/${module}/${l.id}`)
             }
             style={{
               padding: 10,
