@@ -9,7 +9,8 @@ export default function LessonPage() {
   const { vehicle, module } = useParams();
   const router = useRouter();
   const [lessons, setLessons] = useState([]);
-
+   if (!vehicle || !module) return <div>Loading...</div>;
+  
   const courseId = decodeURIComponent(vehicle);
   const moduleId = decodeURIComponent(module);
 
