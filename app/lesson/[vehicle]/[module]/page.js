@@ -8,11 +8,13 @@ import { collection, getDocs } from "firebase/firestore";
 export default function LessonPage() {
   const { vehicle, module } = useParams();
   const router = useRouter();
+
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const courseId = decodeURIComponent(vehicle || "");
-  const moduleId = decodeURIComponent(module || "");
+  // IMPORTANT: use raw params (Next already gives decoded values)
+  const courseId = vehicle;
+  const moduleId = module;
 
   useEffect(() => {
     const load = async () => {
@@ -23,16 +25,26 @@ export default function LessonPage() {
         console.log("Module:", moduleId);
 
         const snap = await getDocs(
-          collection(db, "Courses", courseId, "Modules", moduleId, "Lesson")
+          collection(
+            db,
+            "Courses",
+            courseId,
+            "Modules",
+            moduleId,
+            "Lesson"
+          )
         );
 
         console.log("Docs found:", snap.size);
 
         setLessons(
-          snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          snap.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+          }))
         );
       } catch (err) {
-        console.log("ERROR:", err);
+        console.log("Firestore ERROR:", err);
       } finally {
         setLoading(false);
       }
@@ -52,19 +64,19 @@ export default function LessonPage() {
           No lessons found in Firestore
         </div>
       ) : (
-        lessons.map(l => (
+        lessons.map((l) => (
           <div
             key={l.id}
             onClick={() =>
               router.push(
-                `/quiz/${encodeURIComponent(vehicle)}/${encodeURIComponent(module)}/${encodeURIComponent(l.id)}`
+                `/quiz/${vehicle}/${module}/${l.id}`
               )
             }
             style={{
               padding: 10,
               border: "1px solid black",
               margin: 10,
-              cursor: "pointer"
+              cursor: "pointer",
             }}
           >
             {l.title}
