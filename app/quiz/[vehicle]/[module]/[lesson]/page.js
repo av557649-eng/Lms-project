@@ -7,20 +7,32 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
   const { vehicle, module, lesson } = useParams();
-  const courseId = decodeURIComponent(vehicle);
   const [questions, setQuestions] = useState([]);
+
+  const courseId = decodeURIComponent(vehicle || "");
+  const moduleId = decodeURIComponent(module || "");
+  const lessonId = decodeURIComponent(lesson || "");
 
   useEffect(() => {
     const load = async () => {
-    const snap = await getDocs(
-      collection(db, "Courses", courseId, "Modules", module, "Lessons", lesson, "quiz")
-);
+      const snap = await getDocs(
+        collection(
+          db,
+          "Courses",
+          courseId,
+          "Modules",
+          moduleId,
+          "Lesson",
+          lessonId,
+          "quiz"
+        )
+      );
 
       setQuestions(snap.docs.map(d => d.data()));
     };
 
-    if (vehicle && module && lesson) load();
-  }, [vehicle, module, lesson]);
+    if (courseId && moduleId && lessonId) load();
+  }, [courseId, moduleId, lessonId]);
 
   return (
     <div style={{ padding: 40 }}>
