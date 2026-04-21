@@ -32,7 +32,8 @@ export default function CoursePage() {
           key={m.id}
           onClick={() =>
            router.push(
-            `/lesson/${vehicle}/${encodeURIComponent(module.id)}`
+  `/lesson/${encodeURIComponent(vehicle)}/${encodeURIComponent(module.id)}`
+)
   )
 }
           style={{ padding: 10, border: "1px solid black", margin: 10 }}
