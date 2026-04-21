@@ -10,8 +10,7 @@ export default function CoursePage() {
   const router = useRouter();
   const [modules, setModules] = useState([]);
 
-  // ❌ DO NOT decode or encode
-  const courseId = vehicle;
+  const courseId = decodeURIComponent(vehicle || "");
 
   useEffect(() => {
     const load = async () => {
