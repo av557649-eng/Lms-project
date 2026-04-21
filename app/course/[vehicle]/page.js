@@ -30,7 +30,11 @@ export default function CoursePage() {
       {modules.map(m => (
         <div
           key={m.id}
-          onClick={() => router.push(`/lesson/${vehicle}/${m.id}`)}
+          onClick={() =>
+           router.push(
+            `/lesson/${vehicle}/${encodeURIComponent(module.id)}`
+  )
+}
           style={{ padding: 10, border: "1px solid black", margin: 10 }}
         >
           {m.id}
