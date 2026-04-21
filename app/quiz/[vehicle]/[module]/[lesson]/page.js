@@ -6,12 +6,12 @@ import { db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
-  const { vehicle, module, lesson } = useParams();
+  const params = useParams();
 
-  // Decode URL params to match Firestore document IDs
-  const courseId = decodeURIComponent(vehicle || "");
-  const moduleId = decodeURIComponent(module || "");
-  const lessonId = decodeURIComponent(lesson || "");
+  // ✅ FIX: always decode properly
+  const vehicle = decodeURIComponent(params.vehicle || "");
+  const module = decodeURIComponent(params.module || "");
+  const lesson = decodeURIComponent(params.lesson || "");
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,60 +19,79 @@ export default function QuizPage() {
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        console.log("Fetching quiz for path:", courseId, moduleId, lessonId);
+        console.log("=== QUIZ DEBUG ===");
+        console.log("Vehicle:", vehicle);
+        console.log("Module:", module);
+        console.log("Lesson:", lesson);
 
+        // ✅ IMPORTANT: Firestore path
         const quizRef = collection(
           db,
           "Courses",
-          courseId,  // e.g., "Tipper Trailer"
+          vehicle,
           "Modules",
-          moduleId,  // e.g., "Material Processing"
+          module,
           "Lesson",
-          lessonId,  // e.g., "LVD Bending Machine"
+          lesson,
           "quiz"
         );
 
         const snap = await getDocs(quizRef);
 
-        console.log("Quiz documents found:", snap.size);
+        console.log("Quiz docs found:", snap.size);
 
-        if (snap.size === 0) {
-          console.warn("❌ No quiz found — check Firestore path and document IDs");
-        }
+        snap.docs.forEach((doc) => {
+          console.log("Quiz Doc ID:", doc.id);
+          console.log("Quiz Data:", doc.data());
+        });
 
-        const data = snap.docs.map(doc => ({
+        const data = snap.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
         }));
 
         setQuestions(data);
       } catch (err) {
-        console.error("Error loading quiz:", err);
+        console.log("❌ Quiz Load Error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (courseId && moduleId && lessonId) loadQuiz();
-  }, [courseId, moduleId, lessonId]);
+    if (vehicle && module && lesson) {
+      loadQuiz();
+    }
+  }, [vehicle, module, lesson]);
 
-  if (loading) return <div>Loading quiz...</div>;
+  if (loading) {
+    return <div style={{ padding: 40 }}>Loading quiz...</div>;
+  }
 
   return (
     <div style={{ padding: 40 }}>
-      <h2>Quiz for {lessonId}</h2>
+      <h2>Quiz for {lesson}</h2>
 
       {questions.length === 0 ? (
         <div style={{ color: "red" }}>
-          ❌ No quiz found — check Firestore path and document IDs
+          ❌ No quiz found<br />
+          👉 Check Firestore path + lesson document ID exactly
         </div>
       ) : (
-        questions.map(q => (
-          <div key={q.id} style={{ padding: 10, border: "1px solid black", margin: 10 }}>
+        questions.map((q) => (
+          <div
+            key={q.id}
+            style={{
+              padding: 10,
+              border: "1px solid black",
+              marginBottom: 10,
+            }}
+          >
             <h4>{q.question}</h4>
+
             {q.options?.map((opt, i) => (
               <p key={i}>• {opt}</p>
             ))}
+
             <b>Answer:</b> {q.answer}
           </div>
         ))
