@@ -8,24 +8,28 @@ import { collection, getDocs } from "firebase/firestore";
 export default function QuizPage() {
   const { vehicle, module, lesson } = useParams();
 
+  // Decode URL params to match Firestore document IDs
+  const courseId = decodeURIComponent(vehicle || "");
+  const moduleId = decodeURIComponent(module || "");
+  const lessonId = decodeURIComponent(lesson || "");
+
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        // Use the Firestore names exactly as-is
-        console.log("Fetching quiz for path:", vehicle, module, lesson);
+        console.log("Fetching quiz for path:", courseId, moduleId, lessonId);
 
         const quizRef = collection(
           db,
           "Courses",
-          vehicle,       // Course document ID (e.g., "Tipper Trailer")
+          courseId,  // e.g., "Tipper Trailer"
           "Modules",
-          module,        // Module document ID (e.g., "Material Processing")
+          moduleId,  // e.g., "Material Processing"
           "Lesson",
-          lesson,        // Lesson document ID (e.g., "LVD Bending Machine")
-          "quiz"         // Quiz collection under the lesson
+          lessonId,  // e.g., "LVD Bending Machine"
+          "quiz"
         );
 
         const snap = await getDocs(quizRef);
@@ -33,7 +37,7 @@ export default function QuizPage() {
         console.log("Quiz documents found:", snap.size);
 
         if (snap.size === 0) {
-          console.warn("❌ No quiz found — make sure document IDs match Firestore exactly");
+          console.warn("❌ No quiz found — check Firestore path and document IDs");
         }
 
         const data = snap.docs.map(doc => ({
@@ -49,14 +53,14 @@ export default function QuizPage() {
       }
     };
 
-    if (vehicle && module && lesson) loadQuiz();
-  }, [vehicle, module, lesson]);
+    if (courseId && moduleId && lessonId) loadQuiz();
+  }, [courseId, moduleId, lessonId]);
 
   if (loading) return <div>Loading quiz...</div>;
 
   return (
     <div style={{ padding: 40 }}>
-      <h2>Quiz for {lesson}</h2>
+      <h2>Quiz for {lessonId}</h2>
 
       {questions.length === 0 ? (
         <div style={{ color: "red" }}>
