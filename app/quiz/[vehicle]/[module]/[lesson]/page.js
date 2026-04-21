@@ -6,7 +6,12 @@ import { db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function QuizPage() {
-  const { vehicle, module, lesson } = useParams();
+  const params = useParams();
+
+  // ✅ IMPORTANT FIX: decode Firestore IDs properly
+  const vehicle = decodeURIComponent(params.vehicle || "");
+  const module = decodeURIComponent(params.module || "");
+  const lesson = decodeURIComponent(params.lesson || "");
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,26 +20,16 @@ export default function QuizPage() {
   useEffect(() => {
     const loadQuiz = async () => {
       try {
-        console.log("RAW PARAMS:", vehicle, module, lesson);
-
-        /**
-         * 🔥 IMPORTANT FIX:
-         * Your structure is:
-         * Courses → Tipper Trailer → Material Processing → LVD Bending Machine → quiz
-         *
-         * BUT "Material Processing" is NOT a doc in your URL,
-         * it's just a module label.
-         *
-         * So we go:
-         */
+        console.log("DECODED PATH:");
+        console.log(vehicle, module, lesson);
 
         const quizRef = collection(
           db,
           "Courses",
-          vehicle,
-          module,        // 👈 THIS IS THE KEY FIX (no "Modules")
-          lesson,
-          "Quiz"
+          vehicle,   // ✅ FIXED
+          module,    // ✅ FIXED
+          lesson,    // ✅ FIXED
+          "quiz"
         );
 
         const snap = await getDocs(quizRef);
@@ -42,7 +37,7 @@ export default function QuizPage() {
         console.log("DOC COUNT:", snap.size);
 
         if (snap.empty) {
-          console.log("❌ STILL EMPTY → Firestore path mismatch");
+          console.log("❌ STILL EMPTY - check Firestore structure");
           setQuestions([]);
           setLoading(false);
           return;
@@ -76,8 +71,9 @@ export default function QuizPage() {
   if (questions.length === 0) {
     return (
       <div style={{ padding: 40, color: "red" }}>
-        ❌ No quiz found — YOUR FIRESTORE PATH IS:
-        <br /><br />
+        ❌ No quiz found<br /><br />
+        Check Firestore structure:
+        <br />
         Courses → {vehicle} → {module} → {lesson} → quiz
       </div>
     );
