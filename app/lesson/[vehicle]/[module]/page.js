@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { db } from "../../../../lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function LessonPage() {
@@ -13,22 +13,10 @@ export default function LessonPage() {
   useEffect(() => {
     const load = async () => {
       const snap = await getDocs(
-        collection(
-          db,
-          "Courses",
-          vehicle,
-          "modules",
-          module,
-          "lessons"
-        )
+        collection(db, "Courses", vehicle, "Modules", module, "Lesson")
       );
 
-      setLessons(
-        snap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-      );
+      setLessons(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     };
 
     if (vehicle && module) load();
@@ -38,24 +26,15 @@ export default function LessonPage() {
     <div style={{ padding: 40 }}>
       <h2>{module}</h2>
 
-      {lessons.length === 0 && <p>No lessons found</p>}
-
-      {lessons.map(lesson => (
+      {lessons.map(l => (
         <div
-          key={lesson.id}
+          key={l.id}
           onClick={() =>
-            router.push(
-              `/quiz/${vehicle}/${module}/${lesson.id}`
-            )
+            router.push(`/quiz/${vehicle}/${module}/${l.id}`)
           }
-          style={{
-            padding: 15,
-            margin: 10,
-            border: "1px solid gray",
-            cursor: "pointer"
-          }}
+          style={{ padding: 10, border: "1px solid gray", margin: 10 }}
         >
-          {lesson.title || lesson.id}
+          {l.title}
         </div>
       ))}
     </div>
