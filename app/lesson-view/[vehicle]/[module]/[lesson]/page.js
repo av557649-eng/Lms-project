@@ -57,7 +57,7 @@ export default function LessonView() {
 
   return (
     <div style={{ padding: 40 }}>
-      <h2>{data.title}</h2>
+      <h2>{data.Title}</h2>
 
       {/* VIDEO FIX (IMPORTANT) */}
       {data?.["Video URL"] ? (
@@ -68,7 +68,7 @@ export default function LessonView() {
         <p style={{ color: "red" }}>❌ Video URL missing in Firestore</p>
       )}
 
-      <p>{data.description}</p>
+      <p>{data.Description}</p>
 
       <button
         onClick={() =>
